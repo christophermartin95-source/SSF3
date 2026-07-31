@@ -15,23 +15,43 @@ const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 // rejects responses larger than ~30MB with a 500, so cap well below that.
 const MAX_RESPONSE_BYTES = 8 * 1024 * 1024;
 
-export const objectStorageClient = new Storage({
-  credentials: {
-    audience: "replit",
-    subject_token_type: "access_token",
-    token_url: `${REPLIT_SIDECAR_ENDPOINT}/token`,
-    type: "external_account",
-    credential_source: {
-      url: `${REPLIT_SIDECAR_ENDPOINT}/credential`,
-      format: {
-        type: "json",
-        subject_token_field_name: "access_token",
+/**
+ * Build a Storage client.
+ *
+ * On Render (and any non-Replit host) set GCS_SERVICE_ACCOUNT_KEY to the
+ * full JSON of a GCS service account key — the library picks it up and uses
+ * standard Google OAuth, no sidecar needed.
+ *
+ * On Replit the env var is absent and we fall back to the sidecar-injected
+ * external_account credentials that the platform provides automatically.
+ */
+function createStorageClient(): Storage {
+  const keyJson = process.env.GCS_SERVICE_ACCOUNT_KEY;
+  if (keyJson) {
+    const credentials = JSON.parse(keyJson);
+    return new Storage({ credentials });
+  }
+  // Replit sidecar path — works only when the sidecar is running alongside.
+  return new Storage({
+    credentials: {
+      audience: "replit",
+      subject_token_type: "access_token",
+      token_url: `${REPLIT_SIDECAR_ENDPOINT}/token`,
+      type: "external_account",
+      credential_source: {
+        url: `${REPLIT_SIDECAR_ENDPOINT}/credential`,
+        format: {
+          type: "json",
+          subject_token_field_name: "access_token",
+        },
       },
+      universe_domain: "googleapis.com",
     },
-    universe_domain: "googleapis.com",
-  },
-  projectId: "",
-});
+    projectId: "",
+  });
+}
+
+export const objectStorageClient = createStorageClient();
 
 export class ObjectNotFoundError extends Error {
   constructor() {
@@ -329,6 +349,26 @@ async function signObjectURL({
   method: "GET" | "PUT" | "DELETE" | "HEAD";
   ttlSec: number;
 }): Promise<string> {
+  // Standard GCS path: use the library's native V4 signed URL (requires the
+  // service account key to have the iam.serviceAccounts.signBlob permission).
+  if (process.env.GCS_SERVICE_ACCOUNT_KEY) {
+    const actionMap = {
+      GET: "read",
+      HEAD: "read",
+      PUT: "write",
+      DELETE: "delete",
+    } as const;
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(objectName);
+    const [url] = await file.getSignedUrl({
+      version: "v4",
+      action: actionMap[method],
+      expires: Date.now() + ttlSec * 1000,
+    });
+    return url;
+  }
+
+  // Replit sidecar path.
   const request = {
     bucket_name: bucketName,
     object_name: objectName,
