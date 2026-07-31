@@ -1,0 +1,16 @@
+{
+  "name": "SSF - Sex Sound Files",
+  "short_name": "SSF",
+  "description": "Home of the filthiest sounds. Share and discover audio clips, overheard sounds, self-recorded audio, and live broadcasts.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#1A0F0F",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
