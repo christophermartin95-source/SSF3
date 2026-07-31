@@ -2,9 +2,9 @@ services:
   - type: web
     name: ssf-api
     runtime: node
-    rootDir: artifacts/api-server
-    buildCommand: cd ../.. && npm install -g pnpm && pnpm install && cd artifacts/api-server && pnpm run build
-    startCommand: node --enable-source-maps ./dist/index.mjs
+    rootDir: .
+    buildCommand: pnpm install && pnpm --filter @workspace/api-server run build
+    startCommand: node --enable-source-maps ./artifacts/api-server/dist/index.mjs
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,61 +14,34 @@ services:
         fromDatabase:
           name: ssf-db
           property: connectionString
-      # Set this to your ssf-api public URL once Render assigns it.
-      # e.g. https://ssf-api.onrender.com
       - key: API_BASE_URL
         sync: false
-
-      # ── Clerk auth ─────────────────────────────────────────────────────────
-      # Set both in the Render dashboard → ssf-api → Environment.
       - key: CLERK_SECRET_KEY
         sync: false
       - key: CLERK_PUBLISHABLE_KEY
         sync: false
-
-      # ── Admin access ───────────────────────────────────────────────────────
-      # Comma-separated list of email addresses that should receive admin role.
       - key: ADMIN_EMAILS
         sync: false
-
-      # ── Stripe ─────────────────────────────────────────────────────────────
-      # Obtain from your Stripe dashboard. WEBHOOK_SECRET is generated when you
-      # create the webhook endpoint pointing at <API_BASE_URL>/api/stripe/webhook.
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
-
-      # ── Object storage (Google Cloud Storage) ──────────────────────────────
-      # Paste the full JSON of a GCS service account key as a single-line
-      # string. The account needs Storage Object Admin on your bucket.
-      # See setup guide in RENDER_SETUP.md.
       - key: GCS_SERVICE_ACCOUNT_KEY
         sync: false
-      # Format: /<bucket-name>/<path>  e.g. /ssf-media/private
       - key: PRIVATE_OBJECT_DIR
         sync: false
-      # Format: /<bucket-name>/<path>  e.g. /ssf-media/public
       - key: PUBLIC_OBJECT_SEARCH_PATHS
         sync: false
 
   - type: web
     name: ssf-web
     env: static
-    rootDir: artifacts/earshot
-    # Must cd to workspace root so pnpm can resolve the full monorepo before
-    # running the filtered build. Without the cd, pnpm install runs inside the
-    # earshot package directory and the workspace dependencies are not available.
-    buildCommand: cd ../.. && npm install -g pnpm && pnpm install && pnpm --filter @workspace/earshot run build
-    staticPublishPath: dist/public
+    rootDir: .
+    buildCommand: pnpm install && pnpm --filter @workspace/earshot run build
+    staticPublishPath: artifacts/earshot/dist/public
     envVars:
-      # ── Clerk (frontend) ───────────────────────────────────────────────────
-      # Must match the CLERK_PUBLISHABLE_KEY set on ssf-api.
       - key: VITE_CLERK_PUBLISHABLE_KEY
         sync: false
-      # Routes Clerk Frontend API calls through the API server proxy so auth
-      # works on the Render domain without custom DNS / CNAME setup.
-      # Set this manually in Render dashboard to: https://<ssf-api host>/api/__clerk
       - key: VITE_CLERK_PROXY_URL
         sync: false
 
