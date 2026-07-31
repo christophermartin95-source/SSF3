@@ -41,13 +41,16 @@ services:
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
 
-      # ── Object storage ─────────────────────────────────────────────────────
-      # NOTE: The current object-storage implementation uses Replit's internal
-      # sidecar and will NOT work on Render. Audio upload/download requires
-      # migrating to standard GCS or S3 credentials first.
-      # Leave these unset until storage is migrated.
+      # ── Object storage (Google Cloud Storage) ──────────────────────────────
+      # Paste the full JSON of a GCS service account key as a single-line
+      # string. The account needs Storage Object Admin on your bucket.
+      # See setup guide in RENDER_SETUP.md.
+      - key: GCS_SERVICE_ACCOUNT_KEY
+        sync: false
+      # Format: /<bucket-name>/<path>  e.g. /ssf-media/private
       - key: PRIVATE_OBJECT_DIR
         sync: false
+      # Format: /<bucket-name>/<path>  e.g. /ssf-media/public
       - key: PUBLIC_OBJECT_SEARCH_PATHS
         sync: false
 
