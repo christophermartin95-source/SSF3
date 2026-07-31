@@ -54,8 +54,9 @@ services:
       - key: PUBLIC_OBJECT_SEARCH_PATHS
         sync: false
 
-  - type: static
+  - type: web
     name: ssf-web
+    env: static
     rootDir: artifacts/earshot
     # Must cd to workspace root so pnpm can resolve the full monorepo before
     # running the filtered build. Without the cd, pnpm install runs inside the
