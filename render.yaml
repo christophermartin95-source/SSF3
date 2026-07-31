@@ -1,1 +1,35 @@
 services:
+  - type: web
+    name: ssf-api
+    runtime: node
+    rootDir: artifacts/api-server
+    buildCommand: cd ../.. && npm install -g pnpm && pnpm install && cd artifacts/api-server && pnpm run build
+    startCommand: node --enable-source-maps ./dist/index.mjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - fromDatabase:
+          name: ssf-db
+          property: connectionString
+          key: DATABASE_URL
+
+  - type: static
+    name: ssf-web
+    runtime: static
+    rootDir: artifacts/earshot
+    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter @workspace/earshot run build
+    staticPublishPath: dist/public
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: ssf-api
+          type: web
+          property: url
+
+databases:
+  - name: ssf-db
+    databaseName: ssf
+    user: ssf
+    plan: starter
