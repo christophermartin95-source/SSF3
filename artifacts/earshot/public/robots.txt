@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /settings
+Disallow: /u/
+Disallow: /messages
+Disallow: /chat
+
+Sitemap: https://sexsoundfiles.com/sitemap.xml
