@@ -76,4 +76,4 @@ databases:
   - name: ssf-db
     databaseName: ssf
     user: ssf
-    plan: starter
+    plan: free
