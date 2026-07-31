@@ -10,23 +10,65 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - fromDatabase:
+      - key: DATABASE_URL
+        fromDatabase:
           name: ssf-db
           property: connectionString
-          key: DATABASE_URL
-
-  - type: static
-    name: ssf-web
-    runtime: static
-    rootDir: artifacts/earshot
-    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter @workspace/earshot run build
-    staticPublishPath: dist/public
-    envVars:
-      - key: VITE_API_URL
+      # Set automatically to this service's public URL — used for Stripe webhook registration.
+      - key: API_BASE_URL
         fromService:
           name: ssf-api
           type: web
-          property: url
+          property: hostURL
+
+      # ── Clerk auth ─────────────────────────────────────────────────────────
+      # Set both in the Render dashboard → ssf-api → Environment.
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+
+      # ── Admin access ───────────────────────────────────────────────────────
+      # Comma-separated list of email addresses that should receive admin role.
+      - key: ADMIN_EMAILS
+        sync: false
+
+      # ── Stripe ─────────────────────────────────────────────────────────────
+      # Obtain from your Stripe dashboard. WEBHOOK_SECRET is generated when you
+      # create the webhook endpoint pointing at <API_BASE_URL>/api/stripe/webhook.
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+      # ── Object storage ─────────────────────────────────────────────────────
+      # NOTE: The current object-storage implementation uses Replit's internal
+      # sidecar and will NOT work on Render. Audio upload/download requires
+      # migrating to standard GCS or S3 credentials first.
+      # Leave these unset until storage is migrated.
+      - key: PRIVATE_OBJECT_DIR
+        sync: false
+      - key: PUBLIC_OBJECT_SEARCH_PATHS
+        sync: false
+
+  - type: static
+    name: ssf-web
+    rootDir: artifacts/earshot
+    # Must cd to workspace root so pnpm can resolve the full monorepo before
+    # running the filtered build. Without the cd, pnpm install runs inside the
+    # earshot package directory and the workspace dependencies are not available.
+    buildCommand: cd ../.. && npm install -g pnpm && pnpm install && pnpm --filter @workspace/earshot run build
+    staticPublishPath: dist/public
+    envVars:
+      # ── Clerk (frontend) ───────────────────────────────────────────────────
+      # Must match the CLERK_PUBLISHABLE_KEY set on ssf-api.
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+      # Routes Clerk Frontend API calls through the API server proxy so auth
+      # works on the Render domain without custom DNS / CNAME setup.
+      # Set this manually in Render dashboard to: https://<ssf-api host>/api/__clerk
+      - key: VITE_CLERK_PROXY_URL
+        sync: false
 
 databases:
   - name: ssf-db
