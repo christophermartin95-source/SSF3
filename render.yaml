@@ -14,12 +14,10 @@ services:
         fromDatabase:
           name: ssf-db
           property: connectionString
-      # Set automatically to this service's public URL — used for Stripe webhook registration.
+      # Set this to your ssf-api public URL once Render assigns it.
+      # e.g. https://ssf-api.onrender.com
       - key: API_BASE_URL
-        fromService:
-          name: ssf-api
-          type: web
-          property: hostURL
+        sync: false
 
       # ── Clerk auth ─────────────────────────────────────────────────────────
       # Set both in the Render dashboard → ssf-api → Environment.
