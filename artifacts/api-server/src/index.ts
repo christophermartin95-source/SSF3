@@ -14,7 +14,11 @@ async function initStripe(): Promise<void> {
   try {
     await runMigrations({ databaseUrl });
     const stripeSync = await getStripeSync();
-    const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
+    // API_BASE_URL is set explicitly on Render (or any non-Replit host).
+    // Fall back to REPLIT_DOMAINS for Replit-hosted deployments.
+    const webhookBaseUrl =
+      process.env.API_BASE_URL ??
+      `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
     await stripeSync.findOrCreateManagedWebhook(`${webhookBaseUrl}/api/stripe/webhook`);
     stripeSync
       .syncBackfill()
