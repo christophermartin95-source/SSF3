@@ -1,0 +1,38 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "AAb2dLXg8-ZynG-yZ6k00"
+uri = "file://exports/overheard-website.tar.gz"
+type = "unspecified"
+title = "Overheard website source (tar.gz)"
+
+[[outputs]]
+id = "9c56PEXr-cODev2WE9PA8"
+uri = "file://artifacts/earshot/public/sitemap.xml"
+type = "unspecified"
+title = "sitemap.xml - Google Search Console"
+
+[[outputs]]
+id = "K69vPyk-KAQ1kmPaHciag"
+uri = "file://ssf-website.zip"
+type = "unspecified"
+title = "SSF Website Source Code (ZIP)"
+
+[[outputs]]
+id = "8ubHRJudbKGAB3qWRhU38"
+uri = "file://PUSH_TO_GITHUB.md"
+type = "text"
+title = "GitHub Push Instructions"
+
+[[outputs]]
+id = "xmTdxpx9wOnluXcuA0b5S"
+uri = "file://render.yaml"
+type = "unspecified"
+title = "Render Blueprint Config"
+
+[[outputs]]
+id = "dgkv4hiPyzFRPWBRpICaX"
+uri = "file://README.md"
+type = "text"
+title = "Project README"
